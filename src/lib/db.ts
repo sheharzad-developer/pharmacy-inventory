@@ -1,5 +1,7 @@
 import { Pool } from "pg";
 
+/** Works with Supabase when DATABASE_URL is the URI from Project Settings → Database (sslmode is usually in the URL). */
+
 let pool: Pool | null = null;
 
 export function hasDatabase() {
