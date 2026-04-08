@@ -17,16 +17,60 @@ export function getDatabaseConnectionHint(): string {
   return "Confirm the DB password, Supabase project is not paused, and env vars are attached to this deployment (Production vs Preview).";
 }
 
+function pgCode(e: unknown): string {
+  if (typeof e !== "object" || e === null || !("code" in e)) return "";
+  return String((e as { code: string }).code);
+}
+
+/** Maps DB/network/pooler errors to a safe user-visible string. */
 export function dbFailureUserMessage(e: unknown): string | null {
+  if (e && typeof e === "object" && "errors" in e && Array.isArray((e as AggregateError).errors)) {
+    for (const inner of (e as AggregateError).errors) {
+      const m = dbFailureUserMessage(inner);
+      if (m) return m;
+    }
+  }
+
   const msg = e instanceof Error ? e.message : String(e);
+
+  if (/No database URL|DATABASE_URL is not set/i.test(msg)) {
+    return `Database is not configured. ${getDatabaseConnectionHint()}`;
+  }
+
   if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND|getaddrinfo/i.test(msg)) {
     return `Cannot reach PostgreSQL. ${getDatabaseConnectionHint()}`;
   }
 
-  const code =
-    typeof e === "object" && e !== null && "code" in e ? String((e as { code: string }).code) : "";
+  const code = pgCode(e);
   if (code === "23505") return "Email already registered.";
   if (code === "42P01") return "Database tables are missing. Run sql/schema.sql in Supabase SQL Editor.";
   if (code === "3D000") return "Database does not exist. Check DATABASE_URL.";
+  if (code === "28P01" || code === "28000") {
+    return "Database login failed (wrong password or user). In Supabase → Settings → Database, reset the password and update the same value in every POSTGRES_* / DATABASE_URL on Vercel, then redeploy.";
+  }
+  if (code === "42703") {
+    return "Database schema is out of date. Run sql/schema.sql (or sql/migrate_from_legacy.sql) in the Supabase SQL Editor.";
+  }
+
+  if (/password authentication failed|authentication failed for user|invalid authorization specification/i.test(msg)) {
+    return "Database rejected the username or password. Copy the connection URI again from Supabase (Database settings) into Vercel env vars and redeploy.";
+  }
+
+  if (/Tenant or user not found/i.test(msg)) {
+    return "Supabase pooler rejected the database user. In Supabase → Connect, copy the Session pooler URI exactly (user is usually postgres.yourprojectref, not postgres alone).";
+  }
+
+  if (/MaxClientsInSessionMode|too many clients|remaining connection slots are reserved/i.test(msg)) {
+    return "Database connection limit reached. Wait a minute and try again, or pause other apps using the same Supabase database.";
+  }
+
+  if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode/i.test(msg)) {
+    return "Database SSL/TLS failed. Use the full connection string from Supabase including sslmode=require.";
+  }
+
+  if (/bcrypt|invalid salt|rounds/i.test(msg)) {
+    return "Could not hash the password. Try again or use a simpler password temporarily.";
+  }
+
   return null;
 }

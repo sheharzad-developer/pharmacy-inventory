@@ -57,6 +57,12 @@ export async function POST(req: Request) {
       const status = specific.includes("Email already registered") ? 409 : 503;
       return NextResponse.json({ error: specific }, { status });
     }
-    return NextResponse.json({ error: "Signup failed. Please try again later." }, { status: 500 });
+    const showDetail =
+      process.env.NODE_ENV !== "production" || process.env.SHOW_AUTH_ERRORS === "true";
+    const code = typeof e === "object" && e !== null && "code" in e ? String((e as { code: unknown }).code) : "";
+    const detail = showDetail
+      ? ` (${e instanceof Error ? e.name : "Error"}${code ? ` code=${code}` : ""}: ${e instanceof Error ? e.message : String(e)})`
+      : "";
+    return NextResponse.json({ error: `Signup failed. Please try again later.${detail}` }, { status: 500 });
   }
 }
