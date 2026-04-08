@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { databaseUrlEnvKeyUsed } from "@/lib/databaseUrl";
 import { hasDatabase, getPool } from "@/lib/db";
 import { getDatabaseConnectionHint } from "@/lib/dbErrors";
 
@@ -22,13 +23,19 @@ export async function GET() {
   try {
     const pool = getPool();
     await pool.query("select 1 as ok");
-    return NextResponse.json({ ok: true, configured: true, reachable: true });
+    return NextResponse.json({
+      ok: true,
+      configured: true,
+      reachable: true,
+      envKeyUsed: databaseUrlEnvKeyUsed(),
+    });
   } catch (e) {
     const code = typeof e === "object" && e !== null && "code" in e ? (e as { code: string }).code : undefined;
     return NextResponse.json({
       ok: false,
       configured: true,
       reachable: false,
+      envKeyUsed: databaseUrlEnvKeyUsed(),
       code,
       message: e instanceof Error ? e.message : String(e),
       hint: getDatabaseConnectionHint(),

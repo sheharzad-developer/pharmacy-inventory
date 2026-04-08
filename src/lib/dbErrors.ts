@@ -1,18 +1,20 @@
+import { resolveDatabaseUrl, urlHostIsLoopback, urlHostIsSupabaseDirectDb } from "./databaseUrl";
+
 /**
  * User-facing hints when Postgres is unreachable (common on Vercel + Supabase).
  */
 export function getDatabaseConnectionHint(): string {
-  const u = process.env.DATABASE_URL ?? "";
+  const u = resolveDatabaseUrl() ?? "";
   if (!u.trim()) {
-    return "Add DATABASE_URL in Vercel: Project → Settings → Environment Variables → Production (and Preview if needed), then redeploy.";
+    return "Set DATABASE_URL in Vercel, or install the Supabase integration so POSTGRES_URL_NON_POOLING (or POSTGRES_URL) is defined. Apply to Production and redeploy.";
   }
-  if (/127\.0\.0\.1|localhost/i.test(u)) {
-    return "Remove localhost/127.0.0.1 from DATABASE_URL on Vercel. Use the Supabase connection string from the dashboard.";
+  if (urlHostIsLoopback(u)) {
+    return "The DB host is localhost/127.0.0.1, which Vercel cannot reach. In Vercel env, set DATABASE_URL to Supabase Connect → Session pooler (host *.pooler.supabase.com, port 5432).";
   }
-  if (/db\.[^/]+\.supabase\.co/i.test(u)) {
-    return "On Vercel, the direct db.*.supabase.co host often fails. In Supabase: Connect → use Session pooler (URI uses *.pooler.supabase.com and port 5432). Paste that as DATABASE_URL and redeploy.";
+  if (urlHostIsSupabaseDirectDb(u)) {
+    return "Direct db.*.supabase.co often fails from Vercel. Use Session pooler URI (*.pooler.supabase.com:5432) as DATABASE_URL, or rely on POSTGRES_URL_NON_POOLING from the Supabase integration.";
   }
-  return "Check Vercel DATABASE_URL matches Supabase Dashboard → Connect, the DB password is correct, and the Supabase project is not paused.";
+  return "Confirm the DB password, Supabase project is not paused, and env vars are attached to this deployment (Production vs Preview).";
 }
 
 export function dbFailureUserMessage(e: unknown): string | null {
