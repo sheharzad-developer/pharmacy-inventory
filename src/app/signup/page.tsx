@@ -22,7 +22,17 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, role }),
       });
-      const data = (await res.json()) as { error?: string };
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string };
+        } catch {
+          throw new Error("Server error: invalid response. Check Vercel logs and DATABASE_URL.");
+        }
+      } else if (!res.ok) {
+        throw new Error(`Request failed (${res.status}). Check deployment logs.`);
+      }
       if (!res.ok) throw new Error(data.error || "Signup failed.");
       router.push("/dashboard");
     } catch (err) {

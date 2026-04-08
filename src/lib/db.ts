@@ -11,7 +11,14 @@ export function getPool(): Pool {
     throw new Error("DATABASE_URL is not set.");
   }
   if (!pool) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      // Serverless (Vercel): avoid exhausting DB connections per isolate
+      max: 1,
+      idleTimeoutMillis: 20_000,
+      connectionTimeoutMillis: 15_000,
+      allowExitOnIdle: true,
+    });
   }
   return pool;
 }
