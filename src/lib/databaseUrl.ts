@@ -9,6 +9,27 @@ const URL_ENV_KEYS = [
   "POSTGRES_PRISMA_URL",
 ] as const;
 
+export function urlHostIsLoopback(connectionString: string): boolean {
+  const raw = connectionString.trim().replace(/^postgres:\/\//i, "postgresql://");
+  try {
+    const u = new URL(raw);
+    const h = u.hostname.toLowerCase();
+    return h === "localhost" || h === "127.0.0.1" || h === "::1";
+  } catch {
+    return false;
+  }
+}
+
+export function urlHostIsSupabaseDirectDb(connectionString: string): boolean {
+  const raw = connectionString.trim().replace(/^postgres:\/\//i, "postgresql://");
+  try {
+    const u = new URL(raw);
+    return /^db\.[^.]+\.supabase\.co$/i.test(u.hostname);
+  } catch {
+    return /db\.[^/]+\.supabase\.co/i.test(connectionString);
+  }
+}
+
 /** Which env key `resolveDatabaseUrl()` will use (same skip-loopback-then-fallback logic). */
 export function databaseUrlEnvKeyUsed(): (typeof URL_ENV_KEYS)[number] | null {
   for (const key of URL_ENV_KEYS) {
@@ -33,25 +54,4 @@ export function resolveDatabaseUrl(): string | undefined {
     if (t) return t;
   }
   return undefined;
-}
-
-export function urlHostIsLoopback(connectionString: string): boolean {
-  const raw = connectionString.trim().replace(/^postgres:\/\//i, "postgresql://");
-  try {
-    const u = new URL(raw);
-    const h = u.hostname.toLowerCase();
-    return h === "localhost" || h === "127.0.0.1" || h === "::1";
-  } catch {
-    return false;
-  }
-}
-
-export function urlHostIsSupabaseDirectDb(connectionString: string): boolean {
-  const raw = connectionString.trim().replace(/^postgres:\/\//i, "postgresql://");
-  try {
-    const u = new URL(raw);
-    return /^db\.[^.]+\.supabase\.co$/i.test(u.hostname);
-  } catch {
-    return /db\.[^/]+\.supabase\.co/i.test(connectionString);
-  }
 }
