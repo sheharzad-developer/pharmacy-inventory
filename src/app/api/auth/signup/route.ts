@@ -4,21 +4,9 @@ import { hashPassword } from "@/lib/passwords";
 import { isDisposableEmail, isValidEmailSyntax, normalizeEmail } from "@/lib/emailValidation";
 import { attachSessionCookie } from "@/lib/authSession";
 import { parseRole } from "@/lib/roles";
+import { dbFailureUserMessage } from "@/lib/dbErrors";
 
 type Body = { name?: unknown; email?: unknown; password?: unknown; role?: unknown };
-
-function pgErrorMessage(e: unknown): string | null {
-  const msg = e instanceof Error ? e.message : String(e);
-  if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND/i.test(msg)) {
-    return "Cannot reach the database. Use a public Postgres URL (e.g. Neon/Supabase) in Vercel env; local Docker URLs will not work.";
-  }
-  const code =
-    typeof e === "object" && e !== null && "code" in e ? String((e as { code: string }).code) : "";
-  if (code === "23505") return "Email already registered.";
-  if (code === "42P01") return "Database tables are missing. Run sql/schema.sql on your Postgres database.";
-  if (code === "3D000") return "Database does not exist. Check DATABASE_URL.";
-  return null;
-}
 
 export async function POST(req: Request) {
   let body: Body;
@@ -64,9 +52,9 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error("[api/auth/signup]", e);
-    const specific = pgErrorMessage(e);
+    const specific = dbFailureUserMessage(e);
     if (specific) {
-      const status = specific.includes("Email already") ? 409 : 503;
+      const status = specific.includes("Email already registered") ? 409 : 503;
       return NextResponse.json({ error: specific }, { status });
     }
     return NextResponse.json({ error: "Signup failed. Please try again later." }, { status: 500 });

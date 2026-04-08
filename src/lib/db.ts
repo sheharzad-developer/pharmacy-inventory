@@ -17,8 +17,8 @@ export function getPool(): Pool {
       connectionString: process.env.DATABASE_URL,
       // Serverless (Vercel): avoid exhausting DB connections per isolate
       max: 1,
-      idleTimeoutMillis: 20_000,
-      connectionTimeoutMillis: 15_000,
+      idleTimeoutMillis: 25_000,
+      connectionTimeoutMillis: 25_000,
       allowExitOnIdle: true,
     });
   }

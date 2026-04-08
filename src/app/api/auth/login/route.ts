@@ -3,6 +3,7 @@ import { createSession, findUserByEmail } from "@/lib/authStore";
 import { verifyPassword } from "@/lib/passwords";
 import { isValidEmailSyntax, normalizeEmail } from "@/lib/emailValidation";
 import { attachSessionCookie } from "@/lib/authSession";
+import { dbFailureUserMessage } from "@/lib/dbErrors";
 
 type Body = { email?: unknown; password?: unknown };
 
@@ -42,6 +43,10 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error("[api/auth/login]", e);
+    const specific = dbFailureUserMessage(e);
+    if (specific) {
+      return NextResponse.json({ error: specific }, { status: 503 });
+    }
     return NextResponse.json({ error: "Login failed. Please try again later." }, { status: 500 });
   }
 }
