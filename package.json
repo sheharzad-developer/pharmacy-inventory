@@ -6,19 +6,33 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:setup": "bash scripts/db-setup.sh",
+    "db:createdb": "node scripts/ensure-database.js",
+    "db:schema": "bash scripts/db-apply.sh sql/schema.sql",
+    "db:migrate": "bash scripts/db-apply.sh sql/migrate_from_legacy.sql"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "disposable-email-domains-js": "^1.24.0",
     "next": "16.2.2",
+    "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

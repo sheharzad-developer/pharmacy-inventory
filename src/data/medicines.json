@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "id": "b70d4c1c-246a-455e-ac0a-cbdb3d6990e2",
+      "name": "Panadol",
+      "batchNumber": "BATCH-2026-001",
+      "expiryDate": "2032-02-05",
+      "quantity": 50,
+      "price": 4,
+      "createdAt": "2026-04-08T19:33:30.363Z"
+    },
+    {
+      "id": "a7ce7e3a-04be-4129-a9fa-430ab4095e00",
+      "name": "LogicTest",
+      "batchNumber": "LT-1",
+      "expiryDate": "2027-01-01",
+      "quantity": 0,
+      "price": 1,
+      "createdAt": "2026-04-08T19:08:54.195Z"
+    },
+    {
+      "id": "6cc651b1-9723-43da-9ffa-e832d60f9403",
+      "name": "Panadol",
+      "batchNumber": "BATCH-2026-001",
+      "expiryDate": "2032-08-05",
+      "quantity": 79,
+      "price": 9,
+      "createdAt": "2026-04-08T19:05:12.460Z"
+    },
+    {
+      "id": "06953c58-56fd-4130-80c7-44a744b913a1",
+      "name": "TestPersist",
+      "batchNumber": "P-001",
+      "expiryDate": "2026-12-31",
+      "quantity": 10,
+      "price": 1.25,
+      "createdAt": "2026-04-08T19:00:45.296Z"
+    }
+  ]
+}

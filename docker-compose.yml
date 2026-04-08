@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      # Use 5433 so a Homebrew / Postgres.app instance can keep 5432.
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pharmacy_inventory
+    volumes:
+      - pharmacy_pgdata:/var/lib/postgresql/data
+
+volumes:
+  pharmacy_pgdata:
