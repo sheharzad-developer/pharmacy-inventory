@@ -62,8 +62,9 @@ export function looksLikeSupabaseConnectionString(url: string): boolean {
 }
 
 /**
- * node-pg on Vercel often needs explicit ssl + sslmode on the URL for Supabase.
- * Set DATABASE_SSL_REJECT_UNAUTHORIZED=false only if you still see cert errors (less secure).
+ * Supabase + node-pg on Vercel: strict TLS verification often fails (chain/CA quirks).
+ * Default is rejectUnauthorized: false for Supabase hosts only. Opt into strict checks with
+ * DATABASE_SSL_REJECT_UNAUTHORIZED=true.
  */
 export function preparePgConnection(connectionString: string): {
   connectionString: string;
@@ -76,7 +77,7 @@ export function preparePgConnection(connectionString: string): {
   if (!looksLikeSupabaseConnectionString(cs)) {
     return { connectionString: cs };
   }
-  const strict = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false";
+  const strict = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "true";
   return {
     connectionString: cs,
     ssl: { rejectUnauthorized: strict },

@@ -65,7 +65,7 @@ export function dbFailureUserMessage(e: unknown): string | null {
   }
 
   if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode|self signed|SELF_SIGNED/i.test(msg)) {
-    return "Database SSL/TLS failed. Redeploy after pulling the latest app (it sets SSL for Supabase). In Vercel, ensure your URI includes sslmode=require. If it still fails, set env DATABASE_SSL_REJECT_UNAUTHORIZED=false temporarily (less secure), redeploy, then remove it once connected.";
+    return "Database SSL/TLS failed. Redeploy with the latest code (Supabase uses permissive TLS by default). Ensure your URI is from Supabase Connect. If you set DATABASE_SSL_REJECT_UNAUTHORIZED=true, try removing it.";
   }
 
   if (/bcrypt|invalid salt|rounds/i.test(msg)) {
