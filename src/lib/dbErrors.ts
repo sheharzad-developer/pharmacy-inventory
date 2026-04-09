@@ -65,7 +65,7 @@ export function dbFailureUserMessage(e: unknown): string | null {
   }
 
   if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode|self signed|SELF_SIGNED/i.test(msg)) {
-    return "Database SSL/TLS failed. Redeploy with the latest code (Supabase uses permissive TLS by default). Ensure your URI is from Supabase Connect. If you set DATABASE_SSL_REJECT_UNAUTHORIZED=true, try removing it.";
+    return "Database SSL/TLS failed. Pull the latest code, redeploy on Vercel, and confirm POSTGRES_* / DATABASE_URL is the Supabase Session pooler URI. You do not need to add DATABASE_SSL_REJECT_UNAUTHORIZED unless you intentionally set it to true (strict TLS); leave it unset for normal operation.";
   }
 
   if (/bcrypt|invalid salt|rounds/i.test(msg)) {
