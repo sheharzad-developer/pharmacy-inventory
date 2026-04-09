@@ -65,7 +65,7 @@ export function dbFailureUserMessage(e: unknown): string | null {
   }
 
   if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode|self signed|SELF_SIGNED/i.test(msg)) {
-    return "Database SSL/TLS failed. Pull the latest code, redeploy on Vercel, and confirm POSTGRES_* / DATABASE_URL is the Supabase Session pooler URI. You do not need to add DATABASE_SSL_REJECT_UNAUTHORIZED unless you intentionally set it to true (strict TLS); leave it unset for normal operation.";
+    return "Database SSL/TLS failed. Deploy the newest commit (remote Postgres now always uses explicit permissive TLS in code). In Vercel → Deployments, confirm the latest build. Use Supabase Connect → Session pooler URI in DATABASE_URL or POSTGRES_*.";
   }
 
   if (/bcrypt|invalid salt|rounds/i.test(msg)) {

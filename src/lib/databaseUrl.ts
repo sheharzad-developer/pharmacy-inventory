@@ -61,49 +61,29 @@ export function looksLikeSupabaseConnectionString(url: string): boolean {
   return /supabase\.co|pooler\.supabase\.com/i.test(url);
 }
 
-function isRunningOnVercel(): boolean {
-  return process.env.VERCEL === "1";
-}
-
 /**
- * node-pg on Vercel: TLS verification often fails for managed Postgres. For any **remote** URL on
- * Vercel we set ssl.rejectUnauthorized=false unless DATABASE_SSL_REJECT_UNAUTHORIZED=true.
- * Locally, only Supabase-shaped URLs get that (so Docker localhost stays non-SSL).
+ * Every **remote** Postgres URL gets explicit TLS options for node-pg. Without this, sslmode=require
+ * in the URL alone often still fails certificate verification on Vercel.
+ * Localhost / 127.0.0.1 stays unchanged (Docker dev).
+ *
+ * Opt into strict cert checks: DATABASE_SSL_REJECT_UNAUTHORIZED=true
  */
 export function preparePgConnection(connectionString: string): {
   connectionString: string;
   ssl?: { rejectUnauthorized: boolean };
 } {
   let cs = connectionString.trim();
-  const loopback = urlHostIsLoopback(cs);
-
-  if (!loopback && !/sslmode=/i.test(cs)) {
-    cs += cs.includes("?") ? "&sslmode=require" : "?sslmode=require";
-  }
-
-  if (loopback) {
+  if (urlHostIsLoopback(cs)) {
     return { connectionString: cs };
   }
 
-  const strictSsl = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "true";
-
-  if (isRunningOnVercel()) {
-    return {
-      connectionString: cs,
-      ssl: { rejectUnauthorized: strictSsl },
-    };
+  if (!/sslmode=/i.test(cs)) {
+    cs += cs.includes("?") ? "&sslmode=require" : "?sslmode=require";
   }
 
-  if (looksLikeSupabaseConnectionString(cs)) {
-    return {
-      connectionString: cs,
-      ssl: { rejectUnauthorized: strictSsl },
-    };
-  }
-
-  if (strictSsl) {
-    return { connectionString: cs, ssl: { rejectUnauthorized: true } };
-  }
-
-  return { connectionString: cs };
+  const strict = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "true";
+  return {
+    connectionString: cs,
+    ssl: { rejectUnauthorized: strict },
+  };
 }
