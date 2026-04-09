@@ -55,3 +55,30 @@ export function resolveDatabaseUrl(): string | undefined {
   }
   return undefined;
 }
+
+/** Host string looks like Supabase (direct or pooler). */
+export function looksLikeSupabaseConnectionString(url: string): boolean {
+  return /supabase\.co|pooler\.supabase\.com/i.test(url);
+}
+
+/**
+ * node-pg on Vercel often needs explicit ssl + sslmode on the URL for Supabase.
+ * Set DATABASE_SSL_REJECT_UNAUTHORIZED=false only if you still see cert errors (less secure).
+ */
+export function preparePgConnection(connectionString: string): {
+  connectionString: string;
+  ssl?: { rejectUnauthorized: boolean };
+} {
+  let cs = connectionString.trim();
+  if (looksLikeSupabaseConnectionString(cs) && !/sslmode=/i.test(cs)) {
+    cs += cs.includes("?") ? "&sslmode=require" : "?sslmode=require";
+  }
+  if (!looksLikeSupabaseConnectionString(cs)) {
+    return { connectionString: cs };
+  }
+  const strict = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false";
+  return {
+    connectionString: cs,
+    ssl: { rejectUnauthorized: strict },
+  };
+}

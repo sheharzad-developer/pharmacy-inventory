@@ -1,7 +1,5 @@
 import { Pool } from "pg";
-import { resolveDatabaseUrl } from "./databaseUrl";
-
-/** Works with Supabase when connection string includes sslmode (from dashboard). */
+import { preparePgConnection, resolveDatabaseUrl } from "./databaseUrl";
 
 let pool: Pool | null = null;
 
@@ -10,13 +8,15 @@ export function hasDatabase() {
 }
 
 export function getPool(): Pool {
-  const connectionString = resolveDatabaseUrl();
-  if (!connectionString) {
+  const raw = resolveDatabaseUrl();
+  if (!raw) {
     throw new Error("No database URL: set DATABASE_URL or Vercel Supabase POSTGRES_* variables.");
   }
   if (!pool) {
+    const { connectionString, ssl } = preparePgConnection(raw);
     pool = new Pool({
       connectionString,
+      ssl,
       max: 1,
       idleTimeoutMillis: 25_000,
       connectionTimeoutMillis: 25_000,

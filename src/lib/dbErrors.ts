@@ -64,8 +64,8 @@ export function dbFailureUserMessage(e: unknown): string | null {
     return "Database connection limit reached. Wait a minute and try again, or pause other apps using the same Supabase database.";
   }
 
-  if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode/i.test(msg)) {
-    return "Database SSL/TLS failed. Use the full connection string from Supabase including sslmode=require.";
+  if (/SSL|TLS|certificate|UNABLE_TO_VERIFY|EPROTO|sslmode|self signed|SELF_SIGNED/i.test(msg)) {
+    return "Database SSL/TLS failed. Redeploy after pulling the latest app (it sets SSL for Supabase). In Vercel, ensure your URI includes sslmode=require. If it still fails, set env DATABASE_SSL_REJECT_UNAUTHORIZED=false temporarily (less secure), redeploy, then remove it once connected.";
   }
 
   if (/bcrypt|invalid salt|rounds/i.test(msg)) {
